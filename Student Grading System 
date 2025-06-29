@@ -1,0 +1,169 @@
+import java.util.*;
+
+class Subject {
+    String subjectName;
+    String grade;
+    int credit;
+    double gradePoint;
+
+    public Subject(String subjectName, String grade, int credit) {
+        this.subjectName = subjectName;
+        this.grade = grade;
+        this.credit = credit;
+        this.gradePoint = GradingSystem.getGradePoint(grade);
+    }
+}
+
+class Semester {
+    int semesterNo;
+    List<Subject> subjects = new ArrayList<>();
+
+    public Semester(int semesterNo) {
+        this.semesterNo = semesterNo;
+    }
+
+    public void addSubject(Subject subject) {
+        subjects.add(subject);
+    }
+
+    public double calculateSGPA() {
+        double totalGradePoints = 0;
+        int totalCredits = 0;
+
+        for (Subject s : subjects) {
+            totalGradePoints += s.gradePoint * s.credit;
+            totalCredits += s.credit;
+        }
+
+        return totalCredits == 0 ? 0 : totalGradePoints / totalCredits;
+    }
+
+    public int getTotalCredits() {
+        int total = 0;
+        for (Subject s : subjects) {
+            total += s.credit;
+        }
+        return total;
+    }
+}
+
+class Student {
+    String name;
+    int rollNo;
+    String department;
+    List<Semester> semesters = new ArrayList<>();
+
+    public Student(String name, int rollNo, String department) {
+        this.name = name;
+        this.rollNo = rollNo;
+        this.department = department;
+    }
+
+    public void addSemester(Semester sem) {
+        semesters.add(sem);
+    }
+
+    public double calculateCGPA() {
+        double totalWeightedSgpa = 0;
+        int totalCredits = 0;
+
+        for (Semester s : semesters) {
+            double sgpa = s.calculateSGPA();
+            int credits = s.getTotalCredits();
+            totalWeightedSgpa += sgpa * credits;
+            totalCredits += credits;
+        }
+
+        return totalCredits == 0 ? 0 : totalWeightedSgpa / totalCredits;
+    }
+}
+
+
+class GradingSystem {
+
+    public static double getGradePoint(String grade)
+    {
+        switch(grade.toUpperCase())
+        {
+            case "O":
+                return 10;
+            case "A+":
+                return 9;
+            case"A":
+                return 8;
+            case "B+":
+                    return 7;
+            case "C":
+                return 6;
+            case "D":
+                return 5;
+            default:
+                return 0;
+        }
+           }
+
+    public static String getGradeClassification(double cgpa) {
+        if (cgpa >= 9) return "Outstanding";
+        else if (cgpa >= 8) return "Excellent";
+        else if (cgpa >= 7) return "Very Good";
+        else if (cgpa >= 6) return "Good";
+        else if (cgpa >= 5) return "Average";
+        else return "Fail";
+    }
+}
+
+
+public class StudentGradingSystem {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        // Input Student details
+        System.out.print("Enter student name: ");
+        String name = sc.nextLine();
+        System.out.print("Enter roll number: ");
+        int roll = sc.nextInt();
+        sc.nextLine(); // consume newline
+        System.out.print("Enter department: ");
+        String dept = sc.nextLine();
+
+        Student student = new Student(name, roll, dept);
+
+        System.out.print("Enter number of semesters: ");
+        int numSem = sc.nextInt();
+
+        for (int i = 1; i <= numSem; i++) {
+            System.out.println("\n--- Semester " + i + " ---");
+            Semester sem = new Semester(i);
+
+            System.out.print("Enter number of subjects: ");
+            int numSub = sc.nextInt();
+
+            for (int j = 1; j <= numSub; j++) {
+                sc.nextLine(); // consume newline
+                System.out.print("Enter subject name: ");
+                String subName = sc.nextLine();
+                System.out.print("Enter marks: ");
+                String grade = sc.nextLine();
+                System.out.print("Enter credits: ");
+                int credit = sc.nextInt();
+
+                Subject subject = new Subject(subName, grade, credit);
+                sem.addSubject(subject);
+            }
+
+            student.addSemester(sem);
+        }
+
+        // Output
+        System.out.println("\n----- Student Result -----");
+        for (Semester sem : student.semesters) {
+            double sgpa = sem.calculateSGPA();
+            System.out.println("Semester " + sem.semesterNo + " SGPA: " + String.format("%.2f", sgpa));
+        }
+
+        double cgpa = student.calculateCGPA();
+        String grade = GradingSystem.getGradeClassification(cgpa);
+        System.out.println("\nFinal CGPA: " + String.format("%.2f", cgpa));
+        System.out.println("Final Grade: " + grade);
+    }
+}
